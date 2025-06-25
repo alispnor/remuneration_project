@@ -1,0 +1,70 @@
+from django.db import models
+from decimal import Decimal
+import logging
+logger = logging.getLogger(__name__)
+
+class UnitRemuneration(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    competence_date = models.DateField()
+    value = models.DecimalField(max_digits=10, decimal_places=2)
+    iss = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    pis = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    cofins = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    csll = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    nf_value = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    insured = models.CharField(max_length=255)
+    policy = models.CharField(max_length=50)
+    endorsement = models.CharField(max_length=10)
+    class_of_insurance = models.CharField(max_length=50)
+    extract_number = models.CharField(max_length=50)
+    apuration_statement_aggregated_id = models.IntegerField()
+    unit_remuneration_status_id = models.IntegerField()
+    installment = models.IntegerField()
+    percent_value = models.DecimalField(max_digits=5, decimal_places=2)
+    date_of_export = models.DateField()
+    entries_date = models.DateField(null=True, blank=True)
+    net_value = models.DecimalField(max_digits=10, decimal_places=2)
+    broker_insurance_company_uuid = models.UUIDField()
+    ir = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    type_entry_id = models.IntegerField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.iss = round(self.value * Decimal("0.02"), 5)
+        self.nf_value = round(
+            self.value - (self.iss + self.pis + self.cofins + self.csll), 5
+        )
+        calculated_percent = round((self.value / self.net_value) * 100, 2) if self.net_value else 0
+        if abs(calculated_percent - Decimal(self.percent_value)) > Decimal("0.1"):
+            logger.warning(f"percent_value divergente! Esperado: {calculated_percent}, Informado: {self.percent_value}")
+        super().save(*args, **kwargs)
+
+class UnitRemunerationAggregated(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    competence_date = models.DateField()
+    value = models.DecimalField(max_digits=10, decimal_places=2)
+    iss = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    pis = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    cofins = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    csll = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    nf_value = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    insured = models.CharField(max_length=255)
+    policy = models.CharField(max_length=50)
+    endorsement = models.CharField(max_length=10)
+    class_of_insurance = models.CharField(max_length=50)
+    extract_number = models.CharField(max_length=50)
+    apuration_statement_aggregated_id = models.IntegerField()
+    unit_remuneration_status_id = models.IntegerField()
+    installment = models.IntegerField()
+    percent_value = models.DecimalField(max_digits=5, decimal_places=2)
+    broker_installment_id = models.IntegerField(null=True, blank=True)
+    broker_proposal_id = models.IntegerField(null=True, blank=True)
+    closed_for_grouping = models.BooleanField(default=False)
+    date_of_export = models.DateField()
+    entries_date = models.DateField(null=True, blank=True)
+    net_value = models.DecimalField(max_digits=10, decimal_places=2)
+    broker_insurance_company_uuid = models.UUIDField()
+    ir = models.DecimalField(max_digits=10, decimal_places=5, default=0)
+    type_entry_id = models.IntegerField(null=True, blank=True)
+    identified_agreement_id = models.IntegerField(null=True, blank=True)

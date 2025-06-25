@@ -1,0 +1,8 @@
+Django==4.2
+djangorestframework==3.14
+drf-spectacular==0.26.4
+psycopg2-binary==2.9.9
+pytest==8.2.2
+pytest-django==4.7.0
+django-filter
+pytest-factoryboy==2.7.0
