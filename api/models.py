@@ -1,7 +1,7 @@
 from django.db import models
 from decimal import Decimal
-import logging
-logger = logging.getLogger(__name__)
+from .services.remuneration_calculator import RemunerationCalculator
+
 
 class UnitRemuneration(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -30,13 +30,13 @@ class UnitRemuneration(models.Model):
     type_entry_id = models.IntegerField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        self.iss = round(self.value * Decimal("0.02"), 5)
-        self.nf_value = round(
-            self.value - (self.iss + self.pis + self.cofins + self.csll), 5
+        self.iss = RemunerationCalculator.calculate_iss(Decimal(self.value))
+        self.nf_value = RemunerationCalculator.calculate_nf_value(
+            Decimal(self.value), Decimal(self.iss), Decimal(self.pis), Decimal(self.cofins), Decimal(self.csll)
         )
-        calculated_percent = round((self.value / self.net_value) * 100, 2) if self.net_value else 0
-        if abs(calculated_percent - Decimal(self.percent_value)) > Decimal("0.1"):
-            logger.warning(f"percent_value divergente! Esperado: {calculated_percent}, Informado: {self.percent_value}")
+        RemunerationCalculator.validate_percent_value(
+            Decimal(self.value), Decimal(self.net_value), Decimal(self.percent_value)
+        )
         super().save(*args, **kwargs)
 
 class UnitRemunerationAggregated(models.Model):

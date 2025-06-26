@@ -48,7 +48,7 @@ def test_percent_value_alert_log(caplog):
             apuration_statement_aggregated_id=2,
             unit_remuneration_status_id=1,
             installment=1,
-            percent_value=Decimal("5.00"),
+            percent_value=Decimal("60.00"),
             date_of_export=date.today(),
             entries_date=None,
             net_value=Decimal("1600.00"),
